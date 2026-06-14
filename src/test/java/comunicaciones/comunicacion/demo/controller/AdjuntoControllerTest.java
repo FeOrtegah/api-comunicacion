@@ -32,9 +32,7 @@ class AdjuntoControllerTest {
         try (MockedStatic<RequestToEntityMapper> mapperMock = mockStatic(RequestToEntityMapper.class)) {
             mapperMock.when(() -> RequestToEntityMapper.toAdjunto(request)).thenReturn(adjuntoMapeado);
             when(adjuntoService.guardar(adjuntoMapeado)).thenReturn(adjuntoGuardado);
-
             ResponseEntity<Adjunto> response = adjuntoController.guardar(request);
-
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(1L, response.getBody().getId());
         }
@@ -43,18 +41,14 @@ class AdjuntoControllerTest {
     @Test void obtener_WhenExists_ShouldReturnAdjunto() {
         Adjunto adjunto = new Adjunto(); adjunto.setId(1L);
         when(adjuntoService.obtenerPorId(1L)).thenReturn(Optional.of(adjunto));
-
         ResponseEntity<Adjunto> response = adjuntoController.obtener(1L);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1L, response.getBody().getId());
     }
 
     @Test void obtener_WhenNotExists_ShouldReturnNotFound() {
         when(adjuntoService.obtenerPorId(99L)).thenReturn(Optional.empty());
-
         ResponseEntity<Adjunto> response = adjuntoController.obtener(99L);
-
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
@@ -63,18 +57,14 @@ class AdjuntoControllerTest {
         Adjunto a2 = new Adjunto(); a2.setId(2L);
         List<Adjunto> lista = Arrays.asList(a1, a2);
         when(adjuntoService.obtenerPorMensaje(100L)).thenReturn(lista);
-
         ResponseEntity<List<Adjunto>> response = adjuntoController.obtenerPorMensaje(100L);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
     }
 
     @Test void eliminar_ShouldCallServiceAndReturnOk() {
         doNothing().when(adjuntoService).eliminar(1L);
-
         ResponseEntity<Void> response = adjuntoController.eliminar(1L);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(adjuntoService, times(1)).eliminar(1L);
     }
