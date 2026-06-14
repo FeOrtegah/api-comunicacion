@@ -37,24 +37,17 @@ class ComunicacionControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        // Instanciamos usando el constructor real de tu controlador
         comunicacionController = new ComunicacionController(comunicacionService);
-        
-        // Asignamos por Reflection el campo privado @Autowired dataSource
         Field field = ComunicacionController.class.getDeclaredField("dataSource");
         field.setAccessible(true);
         field.set(comunicacionController, dataSource);
     }
 
-    // --- PRUEBA PARA MENSAJES ---
     @Test void enviarMensaje_ShouldReturnOkAndMensaje() {
         MensajeRequest request = new MensajeRequest();
         Mensaje mensajeGuardado = new Mensaje(); mensajeGuardado.setId(1L);
-        
         when(comunicacionService.enviarMensaje(any())).thenReturn(mensajeGuardado);
-
         ResponseEntity<Mensaje> response = comunicacionController.enviarMensaje(request);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1L, response.getBody().getId());
     }
@@ -62,18 +55,14 @@ class ComunicacionControllerTest {
     @Test void bandejaEntrada_ShouldReturnList() {
         List<Mensaje> mensajes = Arrays.asList(new Mensaje(), new Mensaje());
         when(comunicacionService.obtenerMensajesRecibidos(1L)).thenReturn(mensajes);
-
         ResponseEntity<List<Mensaje>> response = comunicacionController.bandejaEntrada(1L);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
     }
 
     @Test void marcarComoLeido_ShouldReturnOk() {
         doNothing().when(comunicacionService).marcarComoLeido(1L);
-
         ResponseEntity<Void> response = comunicacionController.marcarComoLeido(1L);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(comunicacionService, times(1)).marcarComoLeido(1L);
     }
@@ -82,18 +71,14 @@ class ComunicacionControllerTest {
         ConversacionRequest request = new ConversacionRequest();
         Conversacion conversacion = new Conversacion(); conversacion.setId(10L);
         when(comunicacionService.crearConversacion(any())).thenReturn(conversacion);
-
         ResponseEntity<Conversacion> response = comunicacionController.crearConversacion(request);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(10L, response.getBody().getId());
     }
 
     @Test void obtenerNoLeidas_ShouldReturnList() {
         when(comunicacionService.obtenerNotificacionesNoLeidas(1L)).thenReturn(Collections.emptyList());
-
         ResponseEntity<List<Notificacion>> response = comunicacionController.obtenerNoLeidas(1L);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isEmpty());
     }
@@ -101,31 +86,23 @@ class ComunicacionControllerTest {
     @Test void obtenerConfiguracion_WhenExists_ShouldReturnConfig() {
         ConfiguracionNotificacion config = new ConfiguracionNotificacion();
         when(comunicacionService.obtenerConfiguracion(1L)).thenReturn(Optional.of(config));
-
         ResponseEntity<ConfiguracionNotificacion> response = comunicacionController.obtenerConfiguracion(1L);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test void obtenerConfiguracion_WhenNotExists_ShouldReturnNotFound() {
         when(comunicacionService.obtenerConfiguracion(1L)).thenReturn(Optional.empty());
-
         ResponseEntity<ConfiguracionNotificacion> response = comunicacionController.obtenerConfiguracion(1L);
-
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
-    // --- PRUEBA PARA EL FIX DE SECUENCIAS (SQL NATIVO) ---
     @Test void fixSequence_ShouldReturnOk() throws Exception {
         Connection mockConnection = mock(Connection.class);
         Statement mockStatement = mock(Statement.class);
-
         when(dataSource.getConnection()).thenReturn(mockConnection);
         when(mockConnection.createStatement()).thenReturn(mockStatement);
         when(mockStatement.execute(anyString())).thenReturn(true);
-
         ResponseEntity<String> response = comunicacionController.fixSequence();
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("ok", response.getBody());
     }
@@ -134,12 +111,9 @@ class ComunicacionControllerTest {
         MethodArgumentNotValidException exception = mock(MethodArgumentNotValidException.class);
         BindingResult bindingResult = mock(BindingResult.class);
         FieldError fieldError = new FieldError("object", "email", "El email es obligatorio");
-
         when(exception.getBindingResult()).thenReturn(bindingResult);
         when(bindingResult.getFieldErrors()).thenReturn(Arrays.asList(fieldError));
-
         ResponseEntity<Map<String, String>> response = comunicacionController.handleValidationErrors(exception);
-
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("El email es obligatorio", response.getBody().get("email"));
     }
